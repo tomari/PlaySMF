@@ -34,11 +34,6 @@
         </javac>
     </target>
     <target description="Build all projects which reference this project. Useful to propagate changes." name="build-refprojects"/>
-    <target name="MidiDevEnumrator">
-        <java classname="su.fb01ctl.MidiDevEnumrator" failonerror="true" fork="yes">
-            <classpath refid="fb01ctl.classpath"/>
-        </java>
-    </target>
     <target name="PlaySMF">
         <java classname="su.fb01ctl.PlaySMF" failonerror="true" fork="yes">
             <classpath refid="fb01ctl.classpath"/>
