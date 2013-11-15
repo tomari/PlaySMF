@@ -11,13 +11,15 @@ import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Receiver;
 import javax.sound.midi.Sequence;
 import javax.sound.midi.Sequencer;
+import javax.sound.midi.Soundbank;
+import javax.sound.midi.Synthesizer;
 import javax.sound.midi.SysexMessage;
 import javax.sound.midi.Transmitter;
 
 public class PlaySMF {
 	private static final String help=
-			"PlaySMF Version 1\n"+
-			"PlaySMF [-p dev] [-r gm|gs|sc88|xg|mu100|doc|mt32|fb01] [-l|-la] 1.mid 2.mid 3.mid ...";
+			"PlaySMF Version 2\n"+
+			"PlaySMF [-p dev] [-r gm|gs|sc88|xg|mu100|doc|mt32|fb01] [-s soundfont.sf2] [-l|-la] 1.mid 2.mid 3.mid ...";
 	public static final byte[][] RESET_GM={{(byte)0xF0,0x7E,0x7F,0x09,0x01,(byte)0xF7}};
 	public static final byte[][] RESET_GS={
 		{(byte)0xF0,0x7E,0x7F,0x09,0x01,(byte)0xF7}, // GM
@@ -54,14 +56,20 @@ public class PlaySMF {
 			resetSequence=chooseResetSequenceByName(resetSeqLabel);
 		}
 	}
-	public void prepare() throws MidiUnavailableException {
+	public void prepare(String soundBankPath) throws MidiUnavailableException, IOException, InvalidMidiDataException {
 		if(outDeviceNum>0) {
 			MidiDevice.Info[] devInfo=MidiSystem.getMidiDeviceInfo();
 			outDevice=MidiSystem.getMidiDevice(devInfo[outDeviceNum]);
 		} else {
-			outDevice=MidiSystem.getSequencer();
+			outDevice=MidiSystem.getSynthesizer();
 		}
 		outDevice.open();
+		if(soundBankPath!=null && outDevice instanceof Synthesizer) {
+			Synthesizer synth=(Synthesizer)outDevice;
+			Soundbank sb=MidiSystem.getSoundbank(new File(soundBankPath));
+			synth.loadAllInstruments(sb);
+			//try { Thread.sleep(500); } catch(InterruptedException e) {} // Wait for the system to stabilize
+		}
 		// connect sequencer to the synthesizer
 		sequencer=MidiSystem.getSequencer();
 		Transmitter seqTx=sequencer.getTransmitter();
@@ -73,18 +81,21 @@ public class PlaySMF {
 		Sequence midSeq=MidiSystem.getSequence(midFile);
 		if(resetSequence!=null) {
 			sendReset();
-			try {
-				Thread.sleep(50); // Delay after sending reset
-			} catch (InterruptedException e) { }
 		}
 		sequencer.open();
 		sequencer.setSequence(midSeq);
+		try {
+			Thread.sleep(100);
+		} catch (InterruptedException e) { }
 		long us=sequencer.getMicrosecondLength();
 		sequencer.start();
 		try {
 			Thread.sleep(us/1000);
-		} catch (InterruptedException e) {	
+		} catch (InterruptedException e) {
 		} finally {
+			while(sequencer.isRunning()) {
+				try { Thread.sleep(1000); } catch (InterruptedException e) {}
+			}
 			sequencer.stop();
 			sequencer.close();
 		}
@@ -119,6 +130,7 @@ public class PlaySMF {
 		int argptr=0;
 		int outPortId=-1;
 		String resetType=null;
+		String soundBankPath=null;
 		if(args.length==0) {
 			System.err.println(help);
 			dumpMidiDevices(false);
@@ -131,6 +143,9 @@ public class PlaySMF {
 					argptr+=2;
 				} else if(args[argptr].equals("-r")) {
 					resetType=args[argptr+1];
+					argptr+=2;
+				} else if(args[argptr].equals("-s")) {
+					soundBankPath=args[argptr+1];
 					argptr+=2;
 				} else if(args[argptr].equals("-l")) {
 					dumpMidiDevices(false);
@@ -156,8 +171,8 @@ public class PlaySMF {
 		}
 		PlaySMF ps=new PlaySMF(outPortId,resetType);
 		try {
-			ps.prepare();
-		} catch (MidiUnavailableException e) {
+			ps.prepare(soundBankPath);
+		} catch (Exception e) {
 			System.err.println(e.toString());
 		}
 		
@@ -171,15 +186,16 @@ public class PlaySMF {
 		ps.close();
 	}
 	private void sendReset() {
-		for(int i=0; i<resetSequence.length; i++) {
+		for(byte[] sysex: resetSequence) {
 			SysexMessage sm;
 			try {
-				sm=new SysexMessage(resetSequence[i],resetSequence[i].length);
+				sm=new SysexMessage(sysex,sysex.length);
+				outPort.send(sm,-1);
+				Thread.sleep(50);
 			} catch (InvalidMidiDataException e) {
 				e.printStackTrace();
 				return;
-			}
-			outPort.send(sm,-1);
+			} catch (InterruptedException e) {}
 		}
 	}
 	public static byte[][] chooseResetSequenceByName(String seqName) {

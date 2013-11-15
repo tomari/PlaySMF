@@ -2,7 +2,7 @@
 PlaySMF is a Standard MIDI File (*.mid) player that appropriately resets the
 synthesizer before playing the file. This program is written in Java.
 
-***** Introductionn *****
+***** Introduction *****
 Even though there are several programs that can play MIDI files using external
 sound modules, few resets them appropriately before playing a MIDI file.
 Unfortunately not all MIDI files have reset sequences embedded, so they sound
@@ -10,6 +10,10 @@ different depending on whatever the state that the sound module was left with.
 Moreover there are several pre-GM synthesizers that require special reset
 sequences. To provide consistent sound, this program appropriately resets your
 synthesizer before playing a MIDI file.
+
+Additionally this program supports the OpenJDK's software synthesizer by
+aceepting the option to load the SoundFont file (*.sf2). With appropriate
+soundfont the software synth sounds somewhat acceptable.
 
 ***** Supported Resetting Methods *****
   gm
@@ -69,10 +73,18 @@ To play MIDI files using the synthesizer connected to the UX16 adapter:
 Here sc88 is specified as the reset sequence. See Supported_Resetting_Methods
 for what can be specified here. If you omit the -r option no reset sequence is
 sent.
+
+When the software synthesizer is to be used, you can (and should) specify a 
+soundfont using the -s option:
+
+--
+% PlaySMF -s /usr/share/sounds/sf2/8MBGMSFX.SF2 song1.mid ...
+--
+
 All options are:
 
 --
-% PlaySMF [-p dev] [-r gm|gs|sc88|xg|mu100|doc|mt32|fb01] [-l|-la] 1.mid 2.mid
+% PlaySMF [-p dev] [-r gm|gs|sc88|xg|mu100|doc|mt32|fb01] [-s soundfont.sf2] [-l|-la] 1.mid 2.mid
 3.mid ...
 --
 
