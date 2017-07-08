@@ -80,6 +80,7 @@ public class PlaySMF {
 		Transmitter seqTx=sequencer.getTransmitter();
 		outPort=outDevice.getReceiver();
 		seqTx.setReceiver(outPort);
+		sequencer.open();
 	}
 	public void play(String path) throws InvalidMidiDataException, IOException, MidiUnavailableException {
 		File midFile=new File(path);
@@ -87,7 +88,6 @@ public class PlaySMF {
 		if(resetSequence!=null) {
 			sendReset();
 		}
-		sequencer.open();
 		sequencer.setSequence(midSeq);
 		try {
 			Thread.sleep(100);
@@ -102,10 +102,10 @@ public class PlaySMF {
 				try { Thread.sleep(1000); } catch (InterruptedException e) {}
 			}
 			sequencer.stop();
-			sequencer.close();
 		}
 	}
 	public void close() {
+		sequencer.close();
 		outDevice.close();
 	}
 	private static String stringOfMidDevPorts(int x) {
