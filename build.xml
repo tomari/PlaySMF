@@ -6,8 +6,8 @@
               as the first entry and export the buildfile again. --><project basedir="." default="build" name="fb01ctl">
     <property environment="env"/>
     <property name="debuglevel" value="source,lines,vars"/>
-    <property name="target" value="1.7"/>
-    <property name="source" value="1.7"/>
+    <property name="target" value="1.9"/>
+    <property name="source" value="1.9"/>
     <path id="fb01ctl.classpath">
         <pathelement location="bin"/>
     </path>

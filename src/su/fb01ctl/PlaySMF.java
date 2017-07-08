@@ -18,7 +18,7 @@ import javax.sound.midi.Transmitter;
 
 public class PlaySMF {
 	private static final String help=
-			"PlaySMF Version 2\n"+
+			"PlaySMF Version 3\n"+
 			"PlaySMF [-p dev] [-r gm|gs|sc88|xg|mu100|doc|mt32|fb01] [-s soundfont.sf2] [-l|-la] 1.mid 2.mid 3.mid ...";
 	public static final byte[][] RESET_GM={{(byte)0xF0,0x7E,0x7F,0x09,0x01,(byte)0xF7}};
 	public static final byte[][] RESET_GS={
