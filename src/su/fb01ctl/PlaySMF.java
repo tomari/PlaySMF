@@ -47,7 +47,7 @@ public class PlaySMF {
 	private byte[][] resetSequence;
 	private Receiver outPort;
 	private Sequencer sequencer;
-	
+
 	protected PlaySMF(int deviceNum,String resetSeqLabel) {
 		outDeviceNum=deviceNum;
 		if(resetSeqLabel==null) {
@@ -72,6 +72,11 @@ public class PlaySMF {
 		}
 		// connect sequencer to the synthesizer
 		sequencer=MidiSystem.getSequencer();
+		// detach default transmitter if there are any
+		java.util.List<Transmitter> default_txs=sequencer.getTransmitters();
+		default_txs.forEach((t)->{
+			t.close();
+		});
 		Transmitter seqTx=sequencer.getTransmitter();
 		outPort=outDevice.getReceiver();
 		seqTx.setReceiver(outPort);
@@ -175,7 +180,7 @@ public class PlaySMF {
 		} catch (Exception e) {
 			System.err.println(e.toString());
 		}
-		
+
 		for(int i=argptr; i<args.length; i++) {
 			try {
 				ps.play(args[i]);
