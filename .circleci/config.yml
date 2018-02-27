@@ -1,0 +1,18 @@
+version: 2
+jobs:
+  build:
+    working_directory: ~/code
+    docker:
+      - image: circleci/openjdk:9-jdk-browsers
+    steps:
+      - checkout
+      - run:
+          name: Compile
+          command: ant
+      - run:
+          name: Jar
+          command: ant -f buildjar.xml
+      - store_artifacts:
+          path: dist
+          destination: dist
+
