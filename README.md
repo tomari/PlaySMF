@@ -1,5 +1,7 @@
 # PlaySMF (Plays SMF files after proper reset sequence)
 
+[![CircleCI](https://circleci.com/gh/tomari/PlaySMF.svg?style=svg)](https://circleci.com/gh/tomari/PlaySMF)
+
 PlaySMF is a Standard MIDI File (*.mid) player that appropriately resets the
 synthesizer before playing the file. This program is written in Java.
 
