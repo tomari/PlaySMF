@@ -1,0 +1,10 @@
+apply plugin: 'java'
+
+sourceCompatibility=1.9
+
+jar{
+	manifest{
+		attributes "Main-Class": "su.fb01ctl.PlaySMF"
+	}
+}
+

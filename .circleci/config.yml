@@ -8,11 +8,8 @@ jobs:
       - checkout
       - run:
           name: Compile
-          command: ant
-      - run:
-          name: Jar
-          command: ant -f buildjar.xml
+          command: ./gradlew jar
       - store_artifacts:
-          path: dist
+          path: build/libs
           destination: dist
 
