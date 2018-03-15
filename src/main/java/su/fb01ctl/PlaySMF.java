@@ -3,6 +3,7 @@ package su.fb01ctl;
 
 import java.io.File;
 import java.io.IOException;
+import org.apache.commons.cli.*;
 
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiDevice;
@@ -131,59 +132,59 @@ public class PlaySMF {
 		}
 		return;
 	}
+	/** parse options and invoke real main loop */
 	public static void main(String[] args) {
-		int argptr=0;
-		int outPortId=-1;
-		String resetType=null;
-		String soundBankPath=null;
-		if(args.length==0) {
-			System.err.println(help);
-			dumpMidiDevices(false);
-			System.exit(1);
-		}
-		try {
-			while(argptr<args.length) {
-				if(args[argptr].equals("-p")) {
-					outPortId=Integer.valueOf(args[argptr+1]);
-					argptr+=2;
-				} else if(args[argptr].equals("-r")) {
-					resetType=args[argptr+1];
-					argptr+=2;
-				} else if(args[argptr].equals("-s")) {
-					soundBankPath=args[argptr+1];
-					argptr+=2;
-				} else if(args[argptr].equals("-l")) {
-					dumpMidiDevices(false);
-					System.exit(0);
-					return;
-				} else if(args[argptr].equals("-la")) {
-					dumpMidiDevices(true);
-					argptr++;
-					System.exit(0);
-					return;
-				} else {
-					break;
-				}
+		Options options=new Options();
+		options.addOption("l",false,"List MIDI devices");
+		options.addOption("a",false,"when supplied with -l, list all MIDI devices");
+		options.addOption(Option.builder("p").hasArg(true).type(Number.class)
+			.desc("Output port (index shown with -l option)").build());
+		options.addOption(Option.builder("s").hasArg(true).type(String.class)
+			.desc("Soundfont (path to .sf2 file)").build());
+		options.addOption(Option.builder("r").hasArg(true).type(String.class)
+			.desc("Reset method: one of (gm gs sc88 xg mu100 doc mt32 fb01)").build());
+		CommandLineParser parser=new DefaultParser();
+		try{
+			CommandLine line=parser.parse(options,args);
+			// List MIDI devices
+			if(line.hasOption('l')){
+				dumpMidiDevices(line.hasOption('a'));
 			}
-		} catch (ArrayIndexOutOfBoundsException e) {
-			System.err.println(help);
+			// Get output MIDI port number
+			int outPortID=-1;
+			if(line.hasOption('p')){
+				outPortID=((Number)line.getParsedOptionValue("p")).intValue();
+			}
+			// Get SoundFont path
+			String soundBankPath=null;
+			if(line.hasOption('s')){
+				soundBankPath=(String)line.getParsedOptionValue("s");
+			}
+			// Get Reset Type
+			String resetType=null;
+			if(line.hasOption('r')){
+				resetType=(String)line.getParsedOptionValue("r");
+			}
+			mainLoop(outPortID,resetType,soundBankPath,line.getArgs());
+		}catch(ParseException e){
+			System.err.println("Parsing failed. Reason: "+e.getMessage());
+			HelpFormatter formatter=new HelpFormatter();
+			formatter.printHelp("PlaySMF",options);
 			System.exit(1);
-			return;
-		} catch (NumberFormatException e) {
-			System.err.println(e.toString());
-			System.exit(1);
-			return;
 		}
+		System.exit(0);
+	}
+	/** play smf files */
+	static void mainLoop(int outPortId,String resetType,String soundBankPath,String[] smfFiles){
 		PlaySMF ps=new PlaySMF(outPortId,resetType);
 		try {
 			ps.prepare(soundBankPath);
 		} catch (Exception e) {
 			System.err.println(e.toString());
 		}
-
-		for(int i=argptr; i<args.length; i++) {
+		for(String smf:smfFiles){
 			try {
-				ps.play(args[i]);
+				ps.play(smf);
 			} catch (Exception e) {
 				System.err.println(e.toString());
 			}

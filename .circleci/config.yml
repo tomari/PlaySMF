@@ -6,9 +6,18 @@ jobs:
       - image: circleci/openjdk:9-jdk-browsers
     steps:
       - checkout
+      - restore_cache:
+          key: jars-{{ checksum "build.gradle" }}
+      - run:
+          name: Download Dependencies
+          command: ./gradlew dependencies
+      - save_cache:
+          paths:
+            - ~/.gradle
+          key: jars-{{ checksum "build.gradle" }}
       - run:
           name: Compile
-          command: ./gradlew jar
+          command: ./gradlew
       - store_artifacts:
           path: build/libs
           destination: dist

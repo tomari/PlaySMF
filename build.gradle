@@ -1,10 +1,27 @@
+defaultTasks 'shadowJar'
+buildscript{
+	repositories{
+		jcenter()
+	}
+	dependencies{
+		classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.2'
+	}
+}
+apply plugin: 'com.github.johnrengelman.plugin-shadow'
 apply plugin: 'java'
 
 sourceCompatibility=1.9
 
-jar{
+shadowJar{
 	manifest{
 		attributes "Main-Class": "su.fb01ctl.PlaySMF"
 	}
 }
 
+dependencies{
+	compile group: 'commons-cli', name: 'commons-cli', version: '1.4'
+}
+
+repositories {
+	jcenter()
+}
